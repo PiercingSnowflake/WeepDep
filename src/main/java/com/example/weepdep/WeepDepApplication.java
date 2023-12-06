@@ -67,9 +67,11 @@ public class WeepDepApplication implements CommandLineRunner {
         request.setUsername(username);
         request.setPassword(password);
 
-        User newUser = authController.signUp(request);
-        System.out.println("Account created for user: " + newUser.getUsername());
+        ResponseEntity<String> response = authController.signUp(request);
+        System.out.println("Server Response:");
+        System.out.println(response.getBody());
     }
+
 
     private void login(Scanner scanner) {
         LoginRequest request = new LoginRequest(scanner);

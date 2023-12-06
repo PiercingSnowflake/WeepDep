@@ -20,8 +20,18 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public User signUp(@RequestBody SignUpRequest request) {
-        return userService.createUser(request.getUsername(), request.getPassword());
+    public ResponseEntity<String> signUp(@RequestBody SignUpRequest request) {
+        try {
+            User existingUser = userService.getUserByUsername(request.getUsername());
+            if (existingUser != null) {
+                throw new RuntimeException("Username already exists");
+            }
+
+            User newUser = userService.createUser(request.getUsername(), request.getPassword());
+            return ResponseEntity.ok("Account created for user: " + newUser.getUsername());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating account: " + e.getMessage());
+        }
     }
 
     @PostMapping("/login")
