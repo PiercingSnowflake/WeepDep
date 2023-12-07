@@ -166,10 +166,36 @@ public class WeepDepApplication implements CommandLineRunner {
             System.out.println("Thread Details:");
             System.out.println("Author: " + selectedThread.getAuthorName());
             System.out.println("Title: " + selectedThread.getTitle());
-            System.out.println("Content: " + selectedThread.getContent());
+            System.out.println("Content: ");
+            displayWrappedContent(selectedThread.getContent());
         } else {
             System.out.println("Thread not found.");
         }
+    }
+
+
+    private void displayWrappedContent(String content) {
+        // Split the content into words
+        String[] words = content.split("\\s+");
+
+        // Initialize variables to keep track of line length and maximum line length
+        int lineLength = 0;
+        int maxLineLength = 40; // You can adjust this value based on your preference
+
+        // Iterate through words and print them, wrapping to the next line when needed
+        for (String word : words) {
+            if (lineLength + word.length() <= maxLineLength) {
+                // If the word can fit on the current line, print it
+                System.out.print(word + " ");
+                lineLength += word.length() + 1; // Add 1 for the space between words
+            } else {
+                // If the word doesn't fit, start a new line and print the word
+                System.out.println();
+                System.out.print(word + " ");
+                lineLength = word.length() + 1; // Reset line length
+            }
+        }
+        System.out.println("\n");
     }
 
 
