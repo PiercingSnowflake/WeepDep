@@ -42,12 +42,16 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        User user = userService.getUserByUsername(request.getUsername());
+        try {
+            User user = userService.getUserByUsername(request.getUsername());
 
-        if (user != null && user.getPassword().equals(request.getPassword())) {
-            return ResponseEntity.ok("You successfully logged in as " + user.getUsername());
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            if (user != null && user.getPassword() != null && user.getPassword().equals(request.getPassword())) {
+                return ResponseEntity.ok("You successfully logged in as " + user.getUsername());
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during login: " + e.getMessage());
         }
     }
 
