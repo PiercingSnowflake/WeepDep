@@ -14,6 +14,7 @@ public class Thread {
     private int customId;
     private String title;
     private String content;
+    boolean  isAnon;
     
     @DBRef
     private User user;  // Reference to the user who created the thread
@@ -66,15 +67,6 @@ public class Thread {
         this.content = content;
     }
     
-  
-    /*  public List<Comments> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comments> comments) {
-        this.comments = comments;
-    }
-    */
     public void addComment(Comments comment) {
         if (comments == null) {
             comments = new ArrayList<>();
@@ -85,6 +77,19 @@ public class Thread {
     // Method to get comments of the thread
     public List<Comments> getComments() {
         return comments;
+    }
+    
+    public void setAnon(boolean isAnon) {
+        this.isAnon = isAnon;
+    }
+    
+    public boolean getAnon() {
+
+         return isAnon;
+    }
+    
+    public String getAnonName () {
+        return user.getAnon();
     }
 
 }

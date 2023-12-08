@@ -8,8 +8,13 @@ public class User {
     @Id
     private String id;
     private String username;
+    private String anon;
     private String password;
 
+    public User() {
+    	this.anon = "anonymus";
+    }
+    
     // getters and setters
     public String getId() {
         return id;
@@ -33,5 +38,9 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public String getAnon() {
+        return anon;
     }
 }

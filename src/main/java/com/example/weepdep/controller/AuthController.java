@@ -90,7 +90,7 @@ public class AuthController {
     @PostMapping("/create-thread")
     public ResponseEntity<String> createThread(@RequestBody Thread thread) {
         try {
-            Thread newThread = threadService.createThread(thread.getUser(), thread.getTitle(), thread.getContent());
+            Thread newThread = threadService.createThread(thread.getUser(), thread.getTitle(), thread.getContent(), thread.getAnon());
             return ResponseEntity.ok("Thread created with ID: " + newThread.getCustomId());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating thread: " + e.getMessage());

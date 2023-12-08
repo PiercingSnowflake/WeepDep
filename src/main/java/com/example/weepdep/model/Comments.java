@@ -10,6 +10,7 @@ public class Comments {
     @Id
     private String id;
     private String comment;
+    boolean  isAnon;
 
     @DBRef
     private User user;  // Reference to the user who posted the comment
@@ -24,10 +25,11 @@ public class Comments {
     public Comments(){
 
     }
-    public Comments(User user, String comment, Thread thread){
+    public Comments(User user, String comment, Thread thread, boolean  isAnon){
         this.comment = comment;
         this.user = user;
         this.thread = thread;
+        this.isAnon = isAnon;
     }
 
     public String getComment () {
@@ -72,4 +74,17 @@ public class Comments {
 
         this.bread = bread;
    }
+    
+    public void setAnon(boolean isAnon) {
+        this.isAnon = isAnon;
+    }
+    
+    public boolean getAnon() {
+
+         return isAnon;
+    }
+    
+    public String getAnonName () {
+        return user.getAnon();
+    }
 }

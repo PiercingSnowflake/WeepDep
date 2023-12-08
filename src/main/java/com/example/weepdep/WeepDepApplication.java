@@ -119,11 +119,15 @@ public class WeepDepApplication implements CommandLineRunner {
 
         System.out.print("Enter thread content: ");
         String content = scanner.nextLine();
+        
+        System.out.print("Is it anonymus?(true/false): ");
+        String anon = scanner.nextLine();
 
         Thread newThread = new Thread();
         newThread.setUser(currentUser);
         newThread.setTitle(title);
         newThread.setContent(content);
+        newThread.setAnon(Boolean.valueOf(anon));
 
         ResponseEntity<String> response = authController.createThread(newThread);
         System.out.println("Server Response:");
@@ -161,8 +165,13 @@ public class WeepDepApplication implements CommandLineRunner {
         } else {
             System.out.println("\nThreads:");
             for (Thread thread : threads) {
-                System.out.println(thread.getCustomId() + ". " + thread.getTitle() +
-                        " by " + thread.getAuthorName());
+            	
+            	if(thread.getAnon()) {
+            		System.out.println(thread.getCustomId() + ". " + thread.getTitle() + " by " + thread.getAnonName());
+         		}
+         		else {
+         			System.out.println(thread.getCustomId() + ". " + thread.getTitle() + " by " + thread.getAuthorName());
+         		}
             }
             
         }
@@ -194,7 +203,13 @@ public class WeepDepApplication implements CommandLineRunner {
          	System.out.printf("There are no comments in \"%s\". Be the first to create the first comment.\n", selectedThread.getTitle());
          }else {
          	for (Comments comment : comments) {
-                 System.out.println(comment.getUsername() + ": " + comment.getComment());
+         		if(comment.getAnon()) {
+         			System.out.println(comment.getAnonName() + ": " + comment.getComment());
+         		}
+         		else {
+         			System.out.println(comment.getUsername() + ": " + comment.getComment());
+         		}
+                
              }
          }
     	 
@@ -213,17 +228,17 @@ public class WeepDepApplication implements CommandLineRunner {
             case 1:
             	System.out.print("Enter comment: ");
                 String content = scanner.nextLine();
-                Comments comment = new Comments(currentUser,content, selectedThread);
-                commentService.saveComment(comment);                selectedThread = threadService.saveComment(comment, selectedThread);
+                
+                System.out.print("Is it anonymus?(true/false): ");
+                String anon = scanner.nextLine();
+                Comments comment = new Comments(currentUser,content, selectedThread, Boolean.valueOf(anon));
+                commentService.saveComment(comment);                
+                selectedThread = threadService.saveComment(comment, selectedThread);
 
                 // Display the updated thread details with comments
                 enterThread(scanner, selectedThread.getCustomId());
                 break;
             case 2:
-                break;
-            case 3:
-                System.out.println("Exiting application. Goodbye!");
-                System.exit(0);
                 break;
             default:
                 System.out.println("Invalid choice. Please choose again.");

@@ -32,7 +32,7 @@ public class ThreadService {
         return threadRepository.findByCustomId(customId);
     }
 
-    public Thread createThread(User user, String title, String content) {
+    public Thread createThread(User user, String title, String content, boolean anon) {
         int newCustomId = getNextCustomId();
 
         Thread newThread = new Thread();
@@ -40,6 +40,7 @@ public class ThreadService {
         newThread.setTitle(title);
         newThread.setContent(content);
         newThread.setCustomId(newCustomId);
+        newThread.setAnon(Boolean.valueOf(anon));
 
         threadRepository.save(newThread);
 
