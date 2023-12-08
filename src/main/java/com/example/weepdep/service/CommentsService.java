@@ -1,3 +1,4 @@
+
 package com.example.weepdep.service;
 
 import java.util.List;
@@ -12,9 +13,13 @@ import com.example.weepdep.repository.CommentsRepository;
 public class CommentsService {
     @Autowired
     private CommentsRepository commentRepository;
-    
+
     public List<Comments> getCommentsByThreadId(String threadId) {
         return commentRepository.findByThreadId(threadId);
+    }
+
+    public List<Comments> getCommentsByBreadId(String breadId) {
+        return commentRepository.findByBreadId(breadId);
     }
 
     public Comments saveComment(Comments comment) {

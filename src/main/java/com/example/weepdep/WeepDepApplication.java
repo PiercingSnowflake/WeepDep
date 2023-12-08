@@ -214,8 +214,9 @@ public class WeepDepApplication implements CommandLineRunner {
             	System.out.print("Enter comment: ");
                 String content = scanner.nextLine();
                 Comments comment = new Comments(currentUser,content, selectedThread);
-                commentService.saveComment(comment);
-                selectedThread.getComments().add(comment);
+                commentService.saveComment(comment);                selectedThread = threadService.saveComment(comment, selectedThread);
+
+                // Display the updated thread details with comments
                 enterThread(scanner, selectedThread.getCustomId());
                 break;
             case 2:

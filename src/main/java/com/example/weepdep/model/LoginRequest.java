@@ -6,6 +6,12 @@ public class LoginRequest {
     private String username;
     private String password;
 
+    public LoginRequest(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+
     // Constructor to prompt user input
     public LoginRequest(Scanner scanner) {
         promptUserInput(scanner);

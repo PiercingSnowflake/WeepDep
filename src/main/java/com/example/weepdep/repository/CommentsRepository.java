@@ -6,4 +6,5 @@ import com.example.weepdep.model.Comments;
 
 public interface CommentsRepository extends MongoRepository<Comments, String> {
     List<Comments> findByThreadId(String threadId);
+    List<Comments> findByBreadId(String breadId);
 }

@@ -1,8 +1,10 @@
 package com.example.weepdep.service;
 
+import com.example.weepdep.model.Comments;
 import com.example.weepdep.model.LastThreadId;
 import com.example.weepdep.model.Thread;
 import com.example.weepdep.model.User;
+import com.example.weepdep.repository.CommentsRepository;
 import com.example.weepdep.repository.LastThreadIdRepository;
 import com.example.weepdep.repository.ThreadRepository;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,12 @@ import java.util.List;
 public class ThreadService {
     private final ThreadRepository threadRepository;
     private final LastThreadIdRepository lastThreadIdRepository;
+    private final CommentsRepository commentsRepository;
 
-    public ThreadService(ThreadRepository threadRepository, LastThreadIdRepository lastThreadIdRepository) {
+    public ThreadService(ThreadRepository threadRepository, LastThreadIdRepository lastThreadIdRepository, CommentsRepository commentsRepository) {
         this.threadRepository = threadRepository;
         this.lastThreadIdRepository = lastThreadIdRepository;
+		this.commentsRepository = commentsRepository;
     }
 
     public List<Thread> getAllThreads() {
@@ -78,6 +82,19 @@ public class ThreadService {
         lastThreadIdEntity.setLastThreadId(nextId);
 
         return nextId;
+    }
+    
+    public Thread saveComment(Comments comment, Thread thread) {
+        // You can add additional logic before saving if needed
+        Comments savedComment = commentsRepository.save(comment);
+
+        // Add the comment to the thread's list of comments
+        thread.getComments().add(savedComment);
+
+        // Update the thread in the database
+        threadRepository.save(thread);
+
+        return thread;
     }
 }
 
