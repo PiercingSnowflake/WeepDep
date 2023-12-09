@@ -15,6 +15,11 @@ public class User {
     	this.anon = "anonymus";
     }
     
+    public User(String id) {
+        this.id = id;
+        this.anon = "anonymus";
+    }
+    
     // getters and setters
     public String getId() {
         return id;

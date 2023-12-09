@@ -231,7 +231,7 @@ public class WeepDepApplication implements CommandLineRunner {
                 
                 System.out.print("Is it anonymus?(true/false): ");
                 String anon = scanner.nextLine();
-                Comments comment = new Comments(currentUser,content, selectedThread, Boolean.valueOf(anon));
+                Comments comment = new Comments(currentUser,content, selectedThread,null, Boolean.valueOf(anon));
                 commentService.saveComment(comment);                
                 selectedThread = threadService.saveComment(comment, selectedThread);
 

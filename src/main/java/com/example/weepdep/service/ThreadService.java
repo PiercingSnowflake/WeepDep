@@ -85,12 +85,28 @@ public class ThreadService {
         return nextId;
     }
     
+    
+    /*public Thread saveComment(Comments comment, Thread thread) {
+        // You can add additional logic before saving if needed
+        Comments savedComment = commentsRepository.save(comment);
+
+        // Add the comment to the thread's list of comments
+        thread.getComments().add(savedComment);
+
+        // Update the thread in the database
+        threadRepository.save(thread);
+
+        return thread;
+    }*/
     public Thread saveComment(Comments comment, Thread thread) {
         // You can add additional logic before saving if needed
         Comments savedComment = commentsRepository.save(comment);
 
         // Add the comment to the thread's list of comments
         thread.getComments().add(savedComment);
+
+        // Set the thread reference in the comment
+        savedComment.setThread(thread);
 
         // Update the thread in the database
         threadRepository.save(thread);

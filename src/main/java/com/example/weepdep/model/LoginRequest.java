@@ -5,6 +5,10 @@ import java.util.Scanner;
 public class LoginRequest {
     private String username;
     private String password;
+    
+    public LoginRequest() {
+        // Default constructor needed for JSON deserialization
+    }
 
     public LoginRequest(String username, String password) {
         this.username = username;
@@ -16,7 +20,7 @@ public class LoginRequest {
     public LoginRequest(Scanner scanner) {
         promptUserInput(scanner);
     }
-
+    
     private void promptUserInput(Scanner scanner) {
         System.out.print("Enter username: ");
         this.username = scanner.nextLine();

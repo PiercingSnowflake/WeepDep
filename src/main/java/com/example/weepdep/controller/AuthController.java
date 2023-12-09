@@ -5,7 +5,10 @@ import com.example.weepdep.model.LoginRequest;
 import com.example.weepdep.model.SignUpRequest;
 import com.example.weepdep.model.User;
 import com.example.weepdep.model.Thread;
+import com.example.weepdep.model.ThreadDTO;
 import com.example.weepdep.model.Bread;
+import com.example.weepdep.model.BreadDTO;
+import com.example.weepdep.model.CommentDTO;
 import com.example.weepdep.service.CommentsService;
 import com.example.weepdep.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 
@@ -66,16 +71,7 @@ public class AuthController {
 
 
 
-    @GetMapping("/threads")
-    public List<Thread> getAllThreads() {
-        return threadService.getAllThreads();
-    }
-
-    @GetMapping("/threads/{customId}")
-    public ResponseEntity<Thread> getThreadByCustomId(@PathVariable int customId) {
-        Thread thread = threadService.getThreadByCustomId(customId);
-        return ResponseEntity.ok(thread);
-    }
+    
 /*
     @PostMapping("/threads")
     public ResponseEntity<String> createThread(@RequestBody Thread thread) {
@@ -100,27 +96,17 @@ public class AuthController {
     @PostMapping("/create-bread")
     public ResponseEntity<String> createBread(@RequestBody Bread bread) {
         try {
-            Bread newBread = breadService.createBread(bread.getAuthorName(), bread.getTitle(), bread.getContent());
+            Bread newBread = breadService.createBread(bread.getUser(), bread.getTitle(), bread.getContent(),bread.getAnon());
             return ResponseEntity.ok("Bread created with ID: " + newBread.getCustomId());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating bread: " + e.getMessage());
         }
     }
 
-    @GetMapping("/breads")
-    public List<Bread> getAllBreads() {
-        return breadService.getAllBreads();
-    }
-
-
-    @GetMapping("/breads/{customId}")
-    public ResponseEntity<Bread> getBreadByCustomId(@PathVariable int customId) {
-        Bread bread = breadService.getBreadByCustomId(customId);
-        return ResponseEntity.ok(bread);
-    }
+    
 
     @RestController
-    @RequestMapping("/api/threads")  // Assuming your existing controller handles threads
+    @RequestMapping("/api/auth/threads")
     public class ThreadController {
         @Autowired
         private ThreadService threadService;
@@ -128,29 +114,51 @@ public class AuthController {
         @Autowired
         private CommentsService commentService;
 
-        // Your existing endpoints for threads
+        @GetMapping("/{threadCustomId}/comments")
+        public ResponseEntity<List<Comments>> getCommentsByThreadCustomId(@PathVariable(name = "threadCustomId") int threadCustomId) {
+            Thread thread = threadService.getThreadByCustomId(threadCustomId);
 
-        // Endpoint to get comments for a specific thread
-        @GetMapping("/{threadId}/comments")
-        public ResponseEntity<List<Comments>> getCommentsByThreadId(@PathVariable String threadId) {
-            List<Comments> comments = commentService.getCommentsByThreadId(threadId);
+            if (thread == null) {
+                // Handle case where the thread is not found
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            List<Comments> comments = commentService.getCommentsByThreadId(thread.getId());
             return new ResponseEntity<>(comments, HttpStatus.OK);
         }
 
-        // Endpoint to add a comment to a specific thread
-        @PostMapping("/{threadId}/comments")
-        public ResponseEntity<Comments> addCommentToThread(@PathVariable int threadId, @RequestBody Comments comment) {
-            // You might want to set the thread reference in the comment before saving
-            Thread thread = threadService.getThreadByCustomId(threadId);
-            comment.setThread(thread);
+     // Endpoint to add a comment to a specific thread
+        @PostMapping("/{threadCustomId}/comments")
+        public ResponseEntity<Comments> addCommentToThread(@PathVariable(name = "threadCustomId") int threadCustomId, @RequestBody Map<String, Object> commentData) {
+            Thread thread = threadService.getThreadByCustomId(threadCustomId);
 
-            Comments savedComment = commentService.saveComment(comment);
+            if (thread == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // Extract relevant data from the request body
+            String commentText = (String) commentData.get("comment");
+            boolean isAnon = (boolean) commentData.get("isAnon");
+
+            // Assuming "user" is an object within commentData
+            Map<String, Object> userData = (Map<String, Object>) commentData.get("user");
+            String userId = (String) userData.get("id");
+
+            // Get the user by ID from the database
+            User user = userService.getUserById(userId);
+
+            // Create a new Comments object with the correct user and thread references
+            Comments newComment = new Comments(user, commentText, thread, null, isAnon);
+
+            // Save the new comment
+            Comments savedComment = commentService.saveComment(newComment);
+
             return new ResponseEntity<>(savedComment, HttpStatus.CREATED);
         }
     }
 
-    @RestController
-    @RequestMapping("/api/breads")  // Assuming your existing controller handles threads
+    /*@RestController
+    @RequestMapping("/api/breads")
     public class BreadController {
         @Autowired
         private BreadService breadService;
@@ -158,28 +166,175 @@ public class AuthController {
         @Autowired
         private CommentsService commentService;
 
-        // Your existing endpoints for threads
+        // Your existing endpoints for breads
 
-        // Endpoint to get comments for a specific thread
-        @GetMapping("/{breadId}/comments")
-        public ResponseEntity<List<Comments>> getCommentsByBreadId(@PathVariable String breadId) {
-            List<Comments> comments = commentService.getCommentsByBreadId(breadId);
+        // Endpoint to get comments for a specific bread
+        @GetMapping("/{breadCustomId}/comments")
+        public ResponseEntity<List<Comments>> getCommentsByBreadId(@PathVariable(name = "breadCustomId") int breadCustomId) {
+            Bread bread = breadService.getBreadByCustomId(breadCustomId);
+
+            if (bread == null) {
+                // Handle case where the bread is not found
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            List<Comments> comments = commentService.getCommentsByBreadId(bread.getId());
             return new ResponseEntity<>(comments, HttpStatus.OK);
         }
 
-        // Endpoint to add a comment to a specific thread
         // Endpoint to add a comment to a specific bread
-        @PostMapping("/{breadId}/comments")
-        public ResponseEntity<Comments> addCommentToBread(@PathVariable int breadId, @RequestBody Comments comment) {
-            Bread bread = breadService.getBreadByCustomId(breadId);
-            comment.setBread(bread);
+        @PostMapping("/{breadCustomId}/comments")
+        public ResponseEntity<Comments> addCommentToBread(@PathVariable(name = "breadCustomId") int breadCustomId, @RequestBody Map<String, Object> commentData) {
+            Bread bread = breadService.getBreadByCustomId(breadCustomId);
 
-            Comments savedComment = commentService.saveComment(comment);
+            if (bread == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // Extract relevant data from the request body
+            String commentText = (String) commentData.get("comment");
+            boolean isAnon = (boolean) commentData.get("isAnon");
+
+            // Assuming "user" is an object within commentData
+            Map<String, Object> userData = (Map<String, Object>) commentData.get("user");
+            String userId = (String) userData.get("id");
+
+            // Get the user by ID from the database
+            User user = userService.getUserById(userId);
+
+            // Create a new Comments object with the correct user and bread references
+            Comments newComment = new Comments(user, commentText,null, bread, isAnon);
+
+            // Save the new comment
+            Comments savedComment = commentService.saveComment(newComment);
+
             return new ResponseEntity<>(savedComment, HttpStatus.CREATED);
         }
-
+        
+    }
+    
+    @GetMapping("/breads")
+    public List<Bread> getAllBreads() {
+        return breadService.getAllBreads();
     }
 
 
+    @GetMapping("/breads/{customId}")
+    public ResponseEntity<Bread> getBreadByCustomId(@PathVariable(name = "customId") int customId) {
+        Bread bread = breadService.getBreadByCustomId(customId);
+        return ResponseEntity.ok(bread);
+    }
+    */
+    
+    @RestController
+    @RequestMapping("/api/auth/breads")
+    public class BreadController {
+
+        @Autowired
+        private BreadService breadService;
+
+        @Autowired
+        private CommentsService commentService;
+
+        @GetMapping("/{breadCustomId}/comments")
+        public ResponseEntity<List<Comments>> getCommentsByBreadId(@PathVariable(name = "breadCustomId") int breadCustomId) {
+            Bread bread = breadService.getBreadByCustomId(breadCustomId);
+
+            if (bread == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            List<Comments> comments = commentService.getCommentsByBreadId(bread.getId());
+            return new ResponseEntity<>(comments, HttpStatus.OK);
+        }
+
+        @PostMapping("/{breadCustomId}/comments")
+        public ResponseEntity<Comments> addCommentToBread(@PathVariable(name = "breadCustomId") int breadCustomId, @RequestBody Map<String, Object> commentData) {
+            Bread bread = breadService.getBreadByCustomId(breadCustomId);
+
+            if (bread == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            String commentText = (String) commentData.get("comment");
+            boolean isAnon = (boolean) commentData.get("isAnon");
+
+            Map<String, Object> userData = (Map<String, Object>) commentData.get("user");
+            String userId = (String) userData.get("id");
+
+            User user = userService.getUserById(userId);
+
+            Comments newComment = new Comments(user, commentText, null, bread, isAnon);
+            Comments savedComment = commentService.saveComment(newComment);
+
+            return new ResponseEntity<>(savedComment, HttpStatus.CREATED);
+        }
+
+        @GetMapping
+        public List<BreadDTO> getAllBreads() {
+            List<Bread> breads = breadService.getAllBreads();
+            return breads.stream().map(this::convertToBreadDTO).collect(Collectors.toList());
+        }
+
+        @GetMapping("/{customId}")
+        public ResponseEntity<BreadDTO> getBreadByCustomId(@PathVariable(name = "customId") int customId) {
+            Bread bread = breadService.getBreadByCustomId(customId);
+            if (bread == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            BreadDTO breadDTO = convertToBreadDTO(bread);
+            return ResponseEntity.ok(breadDTO);
+        }
+
+        private BreadDTO convertToBreadDTO(Bread bread) {
+            List<CommentDTO> commentDTOs = bread.getComments().stream().map(this::convertToCommentDTO).collect(Collectors.toList());
+            return new BreadDTO(bread.getId(), bread.getCustomId(), bread.getTitle(), bread.getContent(), bread.getAnon(), commentDTOs);
+        }
+
+        private CommentDTO convertToCommentDTO(Comments comment) {
+            return new CommentDTO(comment.getId(), comment.getComment(), comment.getAnon(), comment.getUsername(), comment.getAnonName(), comment.getThread().getId(), comment.getBread().getId());
+        }
+    }
+    
+    
+
+    /*
+      @GetMapping("/threads")
+    public List<Thread> getAllThreads() {
+        return threadService.getAllThreads();
+    }
+
+    @GetMapping("/threads/{customId}")
+    public ResponseEntity<Thread> getThreadByCustomId(@PathVariable(name = "customId") int customId) {
+        Thread thread = threadService.getThreadByCustomId(customId);
+        return ResponseEntity.ok(thread);
+    }*/
+
+    @GetMapping("/threads")
+    public List<ThreadDTO> getAllThreads() {
+        List<Thread> threads = threadService.getAllThreads();
+        return threads.stream().map(this::convertToThreadDTO).collect(Collectors.toList());
+    }
+
+    @GetMapping("/threads/{customId}")
+    public ResponseEntity<ThreadDTO> getThreadByCustomId(@PathVariable(name = "customId") int customId) {
+        Thread thread = threadService.getThreadByCustomId(customId);
+        if (thread == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        ThreadDTO threadDTO = convertToThreadDTO(thread);
+        return ResponseEntity.ok(threadDTO);
+    }
+
+    // ... existing code ...
+
+    private ThreadDTO convertToThreadDTO(Thread thread) {
+        List<CommentDTO> commentDTOs = thread.getComments().stream().map(this::convertToCommentDTO).collect(Collectors.toList());
+        return new ThreadDTO(thread.getId(), thread.getCustomId(), thread.getTitle(), thread.getContent(), thread.getAnon(), commentDTOs);
+    }
+
+    private CommentDTO convertToCommentDTO(Comments comment) {
+        return new CommentDTO(comment.getId(), comment.getComment(), comment.getAnon(), comment.getUsername(), comment.getAnonName(), comment.getThread().getId(), comment.getBread().getId());
+    }
 
 }

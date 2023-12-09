@@ -7,6 +7,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+
 @Document(collection = "threads")
 public class Thread {
     @Id
@@ -19,9 +23,20 @@ public class Thread {
     @DBRef
     private User user;  // Reference to the user who created the thread
 
-    @DBRef
-    private List<Comments> comments = new ArrayList<>();  // List of comments in the thread
+    @JsonIgnore
+    @JsonManagedReference("thread-comments")
+    @DBRef(lazy = false)
+    private List<Comments> comments = new ArrayList<>();
 
+    
+    public Thread() {
+
+    }
+    
+    public Thread(String id) {
+        this.id = id;
+    }
+    
     // getters and setters
 
     public String getId() {
@@ -67,7 +82,7 @@ public class Thread {
         this.content = content;
     }
     
-    public void addComment(Comments comment) {
+     public void addComment(Comments comment) {
         if (comments == null) {
             comments = new ArrayList<>();
         }
@@ -78,6 +93,7 @@ public class Thread {
     public List<Comments> getComments() {
         return comments;
     }
+   
     
     public void setAnon(boolean isAnon) {
         this.isAnon = isAnon;

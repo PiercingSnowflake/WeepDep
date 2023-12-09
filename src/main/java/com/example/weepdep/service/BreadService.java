@@ -1,6 +1,7 @@
 package com.example.weepdep.service;
 
 import com.example.weepdep.model.LastBreadId;
+import com.example.weepdep.model.User;
 import com.example.weepdep.model.Bread;
 import com.example.weepdep.repository.LastBreadIdRepository;
 import com.example.weepdep.repository.BreadRepository;
@@ -27,11 +28,11 @@ public class BreadService {
         return breadRepository.findByCustomId(customId);
     }
 
-    public Bread createBread(String authorName, String title, String content) {
+    public Bread createBread(User user, String title, String content, boolean anon) {
         int newCustomId = getNextCustomId();
 
         Bread newBread = new Bread();
-        newBread.setAuthorName(authorName);
+        newBread.setUser(user);;
         newBread.setTitle(title);
         newBread.setContent(content);
         newBread.setCustomId(newCustomId);

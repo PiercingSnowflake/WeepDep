@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Document(collection = "comments")
 public class Comments {
 
@@ -15,6 +17,7 @@ public class Comments {
     @DBRef
     private User user;  // Reference to the user who posted the comment
 
+    @JsonBackReference
     @DBRef
     private Thread thread;  // Reference to the thread to which the comment belongs
 
@@ -25,11 +28,12 @@ public class Comments {
     public Comments(){
 
     }
-    public Comments(User user, String comment, Thread thread, boolean  isAnon){
+    public Comments(User user, String comment, Thread thread,Bread bread, boolean  isAnon){
         this.comment = comment;
         this.user = user;
         this.thread = thread;
         this.isAnon = isAnon;
+        this.bread = bread;
     }
 
     public String getComment () {
